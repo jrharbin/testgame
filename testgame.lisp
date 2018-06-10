@@ -5,9 +5,11 @@
 
 (defvar *canvas-width* 800)
 (defvar *canvas-height* 500)
-
-(defvar *black* (gamekit:vec4 0 0 0 1))
 (defvar *origin* (gamekit:vec2 0 0))
+
+(defvar *player-ship-position* (gamekit:vec2 0 0))
+(defvar *step-size* 10d0)
+(defvar *large-step-size* 30d0)
 
 (gamekit:register-resource-package :keyword "/home/jharbin/repos/testgame/images/")
 (gamekit:define-image :ship "testship.png")
@@ -22,13 +24,7 @@
 
 (gamekit:start 'hello-gamekit)
 
-(defvar *current-ship-position* (gamekit:vec2 0 0))
-
-(defvar *step-size* 10d0)
-(defvar *large-step-size* 30d0)
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
 ;; For enemy arrays
 (defclass entity-array ()
   ((status)
@@ -40,14 +36,15 @@
    (global-offset :initform (gamekit:vec2 0 0))))
 
 (defmethod initialize-instance :after ((e entity-array) &key)
+  "Setup the slot array for the different instances"
   (with-slots (status x-width y-width) e
     (setf status (make-array (list x-width y-width)
 			     :element-type 'fixnum
 			     :initial-element 1))))
 
 (defmethod render ((e entity-array))
+  "Render all active entities (status greater than zero) in the array"
   (with-slots (status image global-offset x-width y-width x-offset y-offset) e
-    "Render all active entities in the array"
     (loop for i from 0 upto (- x-width 1) do
       (loop for j from 0 upto (- y-width 1) do
 	(when (> (aref status i j) 0)
@@ -60,16 +57,16 @@
 
 (defvar *enemies* (make-instance 'entity-array :image :enemy :x-width 6 :y-width 3))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+;; Game keys
 (defun setup-keys ()
   (gamekit:bind-button :left :pressed
-		       (lambda () (decf (gamekit:x *current-ship-position*) *step-size*)))
+		       (lambda () (decf (gamekit:x *player-ship-position*) *step-size*)))
   (gamekit:bind-button :right :pressed
-		       (lambda () (incf (gamekit:x *current-ship-position*) *step-size*)))
+		       (lambda () (incf (gamekit:x *player-ship-position*) *step-size*)))
   (gamekit:bind-button :left :repeating
-		       (lambda () (decf (gamekit:x *current-ship-position*) *large-step-size*)))
+		       (lambda () (decf (gamekit:x *player-ship-position*) *large-step-size*)))
   (gamekit:bind-button :right :repeating
-		       (lambda () (incf (gamekit:x *current-ship-position*) *large-step-size*))))
+		       (lambda () (incf (gamekit:x *player-ship-position*) *large-step-size*))))
 
 (setup-keys)
 
@@ -87,7 +84,7 @@
   (gamekit:draw-image *origin* :background)
   (render *enemies*)
   (update-position (slot-value *enemies* 'global-offset) (/ (real-time-seconds) 1))
-  (gamekit:draw-image *current-ship-position* :ship))
+  (gamekit:draw-image *player-ship-position* :ship))
 
 (defun end ()
   (gamekit:stop))
