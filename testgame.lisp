@@ -33,7 +33,7 @@
    (y-width :initarg :y-width :initform 3)
    (x-offset :initarg :x-offset :initform 40)
    (y-offset :initarg :y-offset :initform 40)
-   (global-offset :initform (gamekit:vec2 0 0))))
+   (global-offset :initform (gamekit:vec2 0 300))))
 
 (defmethod initialize-instance :after ((e entity-array) &key)
   "Setup the slot array for the different instances"
